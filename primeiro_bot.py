@@ -4,6 +4,7 @@ from decouple import config
 
 intents = discord.Intents.default()
 intents.message_content = True
+
 bot = commands.Bot(intents=intents, command_prefix='!')
 
 @bot.event
@@ -15,39 +16,26 @@ async def on_message(message):
     if message.author == bot.user:
         return
     
-    if 'palavrão' in message.content:
-        await message.channel.send(f'Por favor, {message.author.name} não ofenda os demais usuários!')
-
-        await message.delete()
-    
     await bot.process_commands(message)
 
 @bot.event
-async def on_reaction_add(reaction, user):
-    print(reaction.emoji)
-    if reaction.emoji == '👍':
-        role = user.guild.get_role(1116722141803589803)
-        await user.add_roles(role)
-    elif reaction.emoji == '💩':
-        role = user.guild.get_role(1116722096748372029)
-        await user.add_roles(role)
+async def on_member_join(member):
+    guild = member.guild
+    role = discord.utils.get(guild.roles, name='Pretendente') #Substituição do cargo para 'Pretendente'
 
+    if role is not None:
+        await member.add_roles(role)
+        print(f'Added role {role.name} to {member.name}')
+    else:
+        print(f'Role not found in server {guild.name}. Make shure that role exists.')
 
-@bot.command(name='oi')
-async def send_oi(ctx):
+@bot.command(name='ajuda')
+async def send_hello(ctx):
     name = ctx.author.name
-
-    response = 'Olá, '+ name
-
-    await ctx.send(response)
-
-@bot.command(name='calcular')
-async def calculate_expression(ctx, *expression):
-    expression = ''.join(expression)
+    response = 'Olá ' + name + f', me chame {bot.user.name} e preciso que me forneça o seu e-mail academico' \
+                f' para que possamso verificar se você é aluno de Engenharia de Computação do IFPB de Campina Grande.'
     
-    response = eval(expression)
-
-    await ctx.send(f'A resposta é: {str(response)}')
+    await ctx.send(response)
 
 
 TOKEN = config('TOKEN')
