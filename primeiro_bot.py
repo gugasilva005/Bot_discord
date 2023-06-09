@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-
+from decouple import config
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -22,6 +22,17 @@ async def on_message(message):
     
     await bot.process_commands(message)
 
+@bot.event
+async def on_reaction_add(reaction, user):
+    print(reaction.emoji)
+    if reaction.emoji == '👍':
+        role = user.guild.get_role(1116722141803589803)
+        await user.add_roles(role)
+    elif reaction.emoji == '💩':
+        role = user.guild.get_role(1116722096748372029)
+        await user.add_roles(role)
+
+
 @bot.command(name='oi')
 async def send_oi(ctx):
     name = ctx.author.name
@@ -39,4 +50,5 @@ async def calculate_expression(ctx, *expression):
     await ctx.send(f'A resposta é: {str(response)}')
 
 
-bot.run('MTExNjUxNTk0ODE1Nzk5MzA5MQ.G2_z-L.pqTehG2ut5Q_jbhCnd5LFXc3OEtA0gaw64AKas')
+TOKEN = config('TOKEN')
+bot.run(TOKEN)
