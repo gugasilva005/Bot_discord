@@ -9,7 +9,7 @@ def send_email():
     # Digite aki acima a mensagem a ser enviada
 
     msg = email.message.Message()
-    msg['Subject'] = 'Assunto' # Assunto do email
+    msg['Subject'] = 'Email teste.' # Assunto do email
     msg['From'] = 'gustavosymoons@gmail.com' # Email de Quem está enviando o email
     msg['To'] = 'gustavosymoons@gmail.com' # Email Para quem esté sendo enviado o email --> "Recebedor" do email
     password = 'agqgxkvjelcwvgky' # Senha do titular do email/Remetente
