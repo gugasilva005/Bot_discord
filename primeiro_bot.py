@@ -18,6 +18,7 @@ class VerificacaoState:
     def __init__(self, email):
         self.email = email
         self.codigo = None
+        self.tentativas = 3
 
 @bot.event
 async def on_ready():
@@ -32,22 +33,22 @@ async def on_message(message):
 
 @bot.event
 async def on_member_join(member):
-    guild = member.guild
-    role = discord.utils.get(guild.roles, name='Pretendente') #Substituição do cargo para 'Pretendente'
+    # ID do cargo 'Pretendente'
+    cargo_id = 1116722096748372029
 
-    if role is not None:
-        await member.add_roles(role)
-        print(f'Added role {role.name} to {member.name}')
-    else:
-        print(f'Role not found in server {guild.name}. Make shure that role exists.')
-
-@bot.command(name='ajuda')
-async def send_hello(ctx):
-    name = ctx.author.name
-    response = 'Olá ' + name + f', me chame {bot.user.name} e preciso que me forneça o seu e-mail academico' \
-                f' para que possamso verificar se você é aluno de Engenharia de Computação do IFPB de Campina Grande.'
+    try:
+        cargo = member.guild.get_role(cargo_id)
+        await member.add_roles(cargo)
+        print(f'Cargo atribuído ao usuário: {cargo.name}')
+    except discord.Forbidden:
+        print(f'Permissão insuficiente para atribuir o cargo.')
+    except discord.NotFound:
+        print('O cargo não foi encontrado.')
     
-    await ctx.send(response)
+    ############# MENSAGEM DE BOAS VINDAS AO SERVIDOR #############
+    mensagem = 'Boas vindas ao servidor do discord do curso de Eng. de Computação do IFPB de Campina Grande.'
+    await member.send(mensagem)
+
 
 @bot.command(name='verificacao')
 # comando de verificacao de email
@@ -98,24 +99,33 @@ async def verificacion(ctx):
                             return m.author == ctx.author and m.channel == ctx.channel
                         
                         try:
-                            mensagem_confirmar = await bot.wait_for('message', check=verificar_mensagem, timeout=120) # Tempo limite para fazer a autenticação (alterável)
+                            for attemps in range(3):
+                                mensagem_confirmar = await bot.wait_for('message', check=verificar_mensagem, timeout=120) # Tempo limite para fazer a autenticação (alterável)
+                                # Verificação de fato do código enviado e recebido
+                                codigo = mensagem_confirmar.content
+                                if codigo_verificacao[email].codigo == codigo:
+                                    mensagem = f'Autenticação bem sucedida para o email {email}!'
+                                    del codigo_verificacao[email]
+                                    await ctx.send(mensagem)
+                                    return
+                                else:
+                                    codigo_verificacao[email].tentativas -= 1
+                                    if codigo_verificacao[email].tentativas == 0:
+                                        mensagem = f'Autentica falha para o email {email}!'
+                                        del codigo_verificacao[email]
+                                        await ctx.send(mensagem)
+                                        return
+                                    else:
+                                        mensagem = f'Código incorreto. Tenha certeza que o código fornecido esta correto.'
+                                        await ctx.send(mensagem)
+                                
                         except asyncio.TimeoutError:
                             mensagem = 'Tempo limite excedido. Verificação cancelada.'
                             await ctx.send(mensagem)
-                            return
-                        # Verificação de fato do código enviado e recebido
-                        codigo = mensagem_confirmar.content
-                        if codigo_verificacao[email].codigo == codigo:
-                            mensagem = f'Autenticação bem sucedida para o email {email}!'
-                            del codigo_verificacao[email]
-                        else:
-                            mensagem = f'Código incorreto. Autenticação falha para o email {email}.'
-                        
-                        await ctx.send(mensagem)
-                        return
                     else:
                         await ctx.send('Ocorreu algum erro, seu email não consta em nosso banco de dados!')
                         return
+                            
                 else:
                     await ctx.send(f'Ocorreu um erro, confira se seu email está na formatação padrão da Instituição.')
             except asyncio.TimeoutError:
@@ -127,9 +137,9 @@ def enviar_email(destinatario, sequencia):
     # Configuracoes do servidor de e-mail
     smtp_server = 'smtp.gmail.com'
     smtp_port = 587
-    smtp_username = 'gustavosymoons@gmail.com'
-    smtp_password = 'agqgxkvjelcwvgky'
-    remetente = 'gustavosymoons@gmail.com'
+    smtp_username = 'projeto.bot.discord.ifpb@gmail.com'
+    smtp_password = 'ppjwpxvpprurppek'
+    remetente = 'projeto.bot.discord.ifpb@gmail.com'
 
     # Cria o objeto de e-mail
     mensagem = 'Olá, \n\nSua sequência de verificação é: {}'.format(sequencia)
