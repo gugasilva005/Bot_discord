@@ -92,7 +92,7 @@ async def on_member_join(member):
             break
         else:
             try:
-                resposta_email = await bot.wait_for('message', check=lambda x: x.author == member, timeout= 60)
+                resposta_email = await bot.wait_for('message', check=lambda x: x.author == member, timeout= 900)
                 tentativas_email += 1
                 email_a_verificar = str(resposta_email.content).lower()
                 if "@academico.ifpb.edu.br" in email_a_verificar or "@ifpb.edu.br" in email_a_verificar:
@@ -123,7 +123,7 @@ async def on_member_join(member):
 
                         for attemps in range(3):
                             # Alterei e coloquei o .id
-                            resposta_codigo = await bot.wait_for('message', check=lambda x: x.author.id == member.id, timeout= 60)
+                            resposta_codigo = await bot.wait_for('message', check=lambda x: x.author.id == member.id, timeout= 900)
                             # Verificação de fato do código enviado e recebido
                             codigo = resposta_codigo.content
                             print('E-mail consta dentro do banco de dados')
